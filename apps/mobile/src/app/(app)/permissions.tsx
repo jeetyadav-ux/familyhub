@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Switch, View } from 'react-native';
-import { CURRENT_PHASE, PHASE_NAMES, ROLE_INFO, type FamilyRole, type PermissionMatrixRow } from '@familyhub/shared';
+import { ASSIGNABLE_ROLES, CURRENT_PHASE, PHASE_NAMES, ROLE_INFO, type FamilyRole, type PermissionMatrixRow } from '@familyhub/shared';
 import { usePermissionMatrix } from '@/hooks/family-data';
 import { errorMessage, rpc } from '@/lib/data';
 import { invalidateFamilyData } from '@/lib/query';
@@ -10,7 +10,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { AppText, Badge, Banner, Card, Divider, ErrorState, LoadingState, Screen } from '@/ui/primitives';
 import { spacing } from '@/ui/theme';
 
-const EDITABLE_ROLES: Exclude<FamilyRole, 'admin'>[] = ['adult', 'child', 'viewer'];
+const EDITABLE_ROLES = ASSIGNABLE_ROLES.filter((r): r is Exclude<typeof r, 'admin'> => r !== 'admin');
 
 export default function PermissionsScreen() {
   const { colors } = useTheme();
@@ -38,7 +38,7 @@ export default function PermissionsScreen() {
   return (
     <Screen>
       <AppText tone="muted">
-        Admins can always do everything. {canManage ? 'Choose what adults, children and viewers can do in this family.' : 'Only admins can change these.'}
+        Admins can always do everything. {canManage ? 'Choose what adults and viewers can do in this family.' : 'Only admins can change these.'}
       </AppText>
       {error ? <Banner tone="danger" title={error} /> : null}
 

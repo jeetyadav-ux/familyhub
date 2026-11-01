@@ -5,6 +5,7 @@ import { Switch, View } from 'react-native';
 import {
   DEFAULT_COUNTRY,
   ROLE_INFO,
+  isAssignableRole,
   normalizePhone,
   relationshipLabelSchema,
   type CountryCode,
@@ -84,7 +85,8 @@ export default function InviteScreen() {
     );
   }
 
-  const roles: FamilyRole[] = isAdmin ? ['adult', 'child', 'viewer', 'admin'] : ['adult', 'child', 'viewer'];
+  // Adults first (most common); only admins may invite another admin.
+  const roles: FamilyRole[] = (['adult', 'viewer', 'admin'] as const).filter((r) => isAssignableRole(r) && (r !== 'admin' || isAdmin));
 
   return (
     <Screen footer={<Button title="Create invitation" loading={create.isPending} onPress={() => { setError(null); create.mutate(); }} />}>

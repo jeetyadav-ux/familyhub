@@ -1,6 +1,17 @@
 export const FAMILY_ROLES = ['admin', 'adult', 'child', 'viewer'] as const;
 export type FamilyRole = (typeof FAMILY_ROLES)[number];
 
+/**
+ * Roles that can be given to people today. 'child' is hidden (owner decision, 1 Nov 2026:
+ * FamilyHub has no child users). Must match app.role_is_assignable() in the database.
+ */
+export const ASSIGNABLE_ROLES = ['admin', 'adult', 'viewer'] as const satisfies readonly FamilyRole[];
+export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
+
+export function isAssignableRole(role: FamilyRole): role is AssignableRole {
+  return (ASSIGNABLE_ROLES as readonly FamilyRole[]).includes(role);
+}
+
 export const MEMBER_STATUSES = ['active', 'removed', 'left'] as const;
 export type MemberStatus = (typeof MEMBER_STATUSES)[number];
 

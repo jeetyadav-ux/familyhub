@@ -7,3 +7,4 @@ export * from './dashboard';
 export * from './errors';
 export * from './schemas';
 export * from './types';
+export * from './visibility';

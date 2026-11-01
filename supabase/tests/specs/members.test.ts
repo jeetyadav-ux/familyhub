@@ -98,7 +98,7 @@ describe('removing and leaving', () => {
   it('lets members leave, but not the primary admin', async () => {
     const primary = await createUser('Primary');
     const member = await createUser('Member');
-    const familyId = await familyWith(primary, [{ user: member, role: 'child' }]);
+    const familyId = await familyWith(primary, [{ user: member, role: 'viewer' }]);
     await expect(rpc(primary, 'leave_family', [familyId])).rejects.toThrow(/FH_TRANSFER_REQUIRED/);
     await rpc(member, 'leave_family', [familyId]);
     expect((await sql('select status from public.family_members where family_id = $1 and user_id = $2', [familyId, member.id])).rows[0]!.status).toBe('left');

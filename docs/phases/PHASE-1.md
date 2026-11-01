@@ -11,7 +11,7 @@ Date: 1 Nov 2026 · Status: **code complete, tests passing; awaiting on-device a
 | Profile | Name capture on first sign-in, edit name later; phone shown read-only |
 | Families | Create a family (creator = primary admin), belong to many families, switch between them (remembered across devices), create more |
 | Invitations | By mobile number (phone-locked, appears automatically in the invitee's app), by one-time 8-character code, deep link `familyhub://join?code=…`, QR code, SMS composer, share sheet, copy; preview before joining; resend (new code), revoke, decline; 7-day expiry; 20 pending max; brute-force lockout after 10 failed attempts/hour |
-| Roles & permissions | Admin, Adult, Child, Viewer; primary admin + optional secondary admins; per-family permission overrides for non-admin roles; admin-only permissions can never be granted |
+| Roles & permissions | Admin, Adult, Viewer (Child role hidden by owner decision and blocked in the database); primary admin + optional secondary admins; per-family permission overrides for non-admin roles; admin-only permissions can never be granted |
 | Member management | Change role (with optional reason), remove member (account kept), leave family, transfer primary admin (fresh OTP), delete family (type the name + fresh OTP, soft delete) |
 | Audit & activity | Immutable audit log of every change to families, members, invitations and permission overrides (with reasons, secrets stripped); readable family activity feed |
 | Home dashboard | Greeting, family switcher, invitations addressed to you, setup checklist, members, pending invitations, activity; widgets can be reordered and hidden per user per family; later-phase widgets listed as upcoming |
@@ -34,14 +34,14 @@ Sign-in, Verify OTP, Profile setup, Family setup, Join (code + preview), Scan QR
 
 ## 4. Database tables created (11)
 
-`profiles`, `families`, `family_members`, `permissions`, `role_permissions`, `family_role_permissions`, `family_invitations`, `invitation_attempts`, `family_activity`, `audit_logs`, `user_dashboard_layouts`. Migrations: `supabase/migrations/20261101000100…000500`.
+`profiles`, `families`, `family_members`, `permissions`, `role_permissions`, `family_role_permissions`, `family_invitations`, `invitation_attempts`, `family_activity`, `audit_logs`, `user_dashboard_layouts`. Migrations: `supabase/migrations/20261101000100…000600`.
 
-## 5. Tests performed — 183 automated tests, all passing
+## 5. Tests performed — 193 automated tests, all passing
 
 | Suite | Count | Covers |
 |---|---:|---|
-| Database (`npm run test:db`) | 59 | RLS on every table, no anon access, pinned search paths, cross-family isolation, removed members lose access instantly, profile privacy, invitation hashing/phone lock/expiry/reuse/rate limit/resend/revoke/decline, role and removal rules, primary-admin protection (RPC + trigger), step-up OTP, soft delete, permission overrides incl. forged rows, audit visibility and immutability, catalog in sync with app code |
-| Shared (`packages/shared`) | 54 | Phone normalisation, invite codes and links, permission matrix, dashboard layout merge, module registry, error mapping |
+| Database (`npm run test:db`) | 64 | RLS on every table, no anon access, pinned search paths, cross-family isolation, removed members lose access instantly, profile privacy, invitation hashing/phone lock/expiry/reuse/rate limit/resend/revoke/decline, role and removal rules, hidden Child role (invites, role changes and direct writes blocked), primary-admin protection (RPC + trigger), step-up OTP, soft delete, permission overrides incl. forged rows, audit visibility and immutability, catalog in sync with app code |
+| Shared (`packages/shared`) | 59 | Assignable roles, Personal/Family visibility rule, phone normalisation, invite codes and links, permission matrix, dashboard layout merge, module registry, error mapping |
 | API (`apps/api`) | 28 | JWT verification (ES256/HS256, expiry, audience, issuer, unknown key, `alg: none`, anon role), auth guard, permission guard, error shape and leakage, security headers, config validation |
 | Mobile (`apps/mobile`) | 42 | Session encryption, sign-in validation and OTP request, OTP input, confirmation dialogs, placeholder screens have no actions, activity/audit wording, dates |
 
@@ -53,7 +53,7 @@ Also verified: all workspaces typecheck; the mobile app builds a production bund
 2. **SMS**: only Supabase test numbers (fixed OTPs). Real SMS to Indian numbers needs an SMS provider plus TRAI DLT registration.
 3. **Expo Go**: SDK 58 is new; if the store version of Expo Go doesn't support it yet, use a development build (steps below).
 4. Membership changes reach other open devices on their next refresh (pull-to-refresh, app focus or within ~30 s), not instantly. Realtime arrives with Phase 4. Server-side access is cut immediately regardless.
-5. Children need their own mobile number to sign in (see open decision 1 in the architecture doc).
+5. No child users by design (owner decision). Records about children are kept by a parent as Personal or Family from Phase 2 onwards.
 6. Avatars are initials only (photo upload arrives with Storage in Phase 5). Changing your phone number is not supported yet.
 7. App updates: Settings shows the installed version and build; update checks and in-app updates are Phase 8.
 8. The API is ready but the app doesn't call it yet; Phase 2's finance engine is its first consumer.
@@ -65,7 +65,8 @@ Also verified: all workspaces typecheck; the mobile app builds a production bund
 
 - [ ] Create the Supabase project and apply migrations (section 8).
 - [ ] Run the app on two phones and complete the acceptance checklist (section 9).
-- [ ] Decide: children without phones; hosting region (Mumbai recommended); SMS provider.
+- [x] Decide: children → no child users; Personal or Family records (1 Nov 2026).
+- [ ] Decide: hosting region (Mumbai recommended); SMS provider.
 
 ## 8. How to run
 
@@ -123,7 +124,7 @@ CI runs all of these on every push (`.github/workflows/ci.yml`).
 | 3 | A: Family → Invite, B's number, role Adult → Create | Code + QR shown; "Send by SMS" opens Messages with the text |
 | 4 | B: sign in, enter name | Family setup lists A's invitation → Join → B's Home shows the family |
 | 5 | A: pull to refresh Home | 2 members; activity "B joined as an adult"; checklist step 1 ticked |
-| 6 | B: Family tab | No Invite button; Permissions viewable, switches disabled; no Audit log |
+| 6 | B: Family tab | No Invite button; Permissions viewable, switches disabled; no Audit log. A's invite screen offers Adult, Viewer and Admin only |
 | 7 | A: Permissions → Adults → Invite members ON. B: refresh | B now sees Invite |
 | 8 | A: open B → change to Viewer with a reason | Audit log shows "Role changed: Adult → Viewer" with the reason |
 | 9 | A: Invite without a number → share the code. Phone C (or B after step 10) joins via **Join with a code** and via **Scan QR** | Preview shows family, inviter and role, then joins |

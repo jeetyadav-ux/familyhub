@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
-import { ROLE_INFO, formatPhone, roleLabel, type FamilyRole } from '@familyhub/shared';
+import { FAMILY_ROLES, ROLE_INFO, formatPhone, isAssignableRole, roleLabel, type FamilyRole } from '@familyhub/shared';
 import { StepUpCancelled, useStepUp } from '@/features/step-up';
 import { useFamilyRecord, useMembers } from '@/hooks/family-data';
 import { errorMessage, rpc } from '@/lib/data';
@@ -97,7 +97,11 @@ export default function MemberScreen() {
               setRole(r);
               setError(null);
             }}
-            options={(['admin', 'adult', 'child', 'viewer'] as FamilyRole[]).map((r) => ({ value: r, label: ROLE_INFO[r].label }))}
+            options={FAMILY_ROLES.filter((r) => isAssignableRole(r) || r === member.role).map((r) => ({
+              value: r,
+              label: ROLE_INFO[r].label,
+              disabled: !isAssignableRole(r),
+            }))}
           />
           <AppText variant="caption" tone="muted">
             {ROLE_INFO[selectedRole].summary}

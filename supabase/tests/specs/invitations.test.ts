@@ -36,10 +36,10 @@ describe('creating invitations', () => {
     const admin = await createUser('Admin');
     const adult = await createUser('Adult');
     const familyId = await familyWith(admin, [{ user: adult, role: 'adult' }]);
-    await expect(invite(adult, familyId, 'child')).rejects.toThrow(/FH_NOT_AUTHORIZED/);
+    await expect(invite(adult, familyId, 'viewer')).rejects.toThrow(/FH_NOT_AUTHORIZED/);
 
     const outsider = await createUser('Outsider');
-    await expect(invite(outsider, familyId, 'child')).rejects.toThrow(/FH_NOT_AUTHORIZED/);
+    await expect(invite(outsider, familyId, 'viewer')).rejects.toThrow(/FH_NOT_AUTHORIZED/);
   });
 
   it('lets an adult invite once granted, but never invite an admin', async () => {
@@ -48,7 +48,7 @@ describe('creating invitations', () => {
     const familyId = await familyWith(admin, [{ user: adult, role: 'adult' }]);
     await rpc(admin, 'set_role_permission', [familyId, 'adult', 'members.invite', true]);
 
-    await expect(invite(adult, familyId, 'child')).resolves.toBeTruthy();
+    await expect(invite(adult, familyId, 'viewer')).resolves.toBeTruthy();
     await expect(invite(adult, familyId, 'admin')).rejects.toThrow(/FH_NOT_AUTHORIZED/);
   });
 
@@ -64,7 +64,7 @@ describe('creating invitations', () => {
     const admin = await createUser('Admin');
     const familyId = await createFamily(admin);
     const first = await invite(admin, familyId, 'adult', '+919811111111');
-    await invite(admin, familyId, 'child', '+919811111111');
+    await invite(admin, familyId, 'viewer', '+919811111111');
     const old = (await sql('select status from public.family_invitations where id = $1', [first.invitation_id])).rows[0]!;
     expect(old.status).toBe('revoked');
   });

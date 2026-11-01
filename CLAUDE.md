@@ -9,13 +9,15 @@ Read `docs/ARCHITECTURE.md` before changing anything. The product spec is `docs/
 4. `SECURITY DEFINER` functions must `set search_path = ''` and fully qualify objects. They check membership/permission themselves.
 5. Money uses `numeric(14,2)`. Spend is only ever computed through the shared accounting definition (architecture §5.4).
 6. Never store card numbers, CVV, PIN, OTP, passwords, bank credentials or full Aadhaar numbers.
-7. No secrets in the mobile app or in git. Add new variables to the relevant `.env.example`.
-8. Ask the user before destructive data operations, and require confirmation in the UI for financial or admin actions.
-9. A phase is complete only when its tests pass. Write `docs/phases/PHASE-N.md` and update `docs/PROGRESS.md` at the end of each phase.
+7. Every record is `personal` or `family` (`RECORD_VISIBILITIES`), default `personal`, chosen on every add/edit form (architecture §4.4). Admins never see another member's personal records.
+8. There are no child users: the Child role stays hidden (`ASSIGNABLE_ROLES`, `app.role_is_assignable()`) unless the owner decides otherwise.
+9. No secrets in the mobile app or in git. Add new variables to the relevant `.env.example`.
+10. Ask the user before destructive data operations, and require confirmation in the UI for financial or admin actions.
+11. A phase is complete only when its tests pass. Write `docs/phases/PHASE-N.md` and update `docs/PROGRESS.md` at the end of each phase.
 
 ## Layout
-- `apps/mobile`: Expo (SDK 56) + Expo Router + TypeScript
-- `apps/api`: NestJS API (verifies Supabase JWTs, queries as the user so RLS applies)
+- `apps/mobile`: Expo SDK 58 (React Native 0.88) + Expo Router + TypeScript; routes in `src/app`
+- `apps/api`: NestJS 12 API, ESM, Vitest (verifies Supabase JWTs, queries as the user so RLS applies)
 - `packages/shared`: roles, permissions, zod schemas, utilities shared by app and API
 - `supabase/migrations`: ordered SQL migrations; `supabase/tests`: DB tests (Vitest + pg)
 

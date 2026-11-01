@@ -135,7 +135,7 @@ familyhub/
 
 ### 4.2 Accounts, families and roles
 - One **account** per person (keyed by verified phone). A person can belong to **many families** and switches between them; the last-used family is remembered per account.
-- Roles per family membership: **admin, adult, child, viewer**.
+- Roles per family membership: **admin, adult, viewer**. A **child** role exists in the schema but is **hidden** (owner decision, 1 Nov 2026: FamilyHub has no child users). No invitation or membership can use it; re-enabling it is a one-line change to `app.role_is_assignable()` plus `ASSIGNABLE_ROLES` in `packages/shared`.
 - **Primary admin** = `families.primary_admin_id` (exactly one). Any other member with role `admin` is a **secondary admin** with full admin powers *except* deleting the family and transferring primary ownership. The primary admin cannot be demoted or removed until ownership is transferred (enforced by RPC and by a trigger).
 - Removing a member sets their membership to `removed`; their account, personal data and other families are untouched. Access stops immediately because every RLS check requires an `active` membership.
 
@@ -145,24 +145,27 @@ familyhub/
 - **Per-family overrides** (`family_role_permissions`) let a family's admins grant or revoke non-admin-only permissions for adult/child/viewer.
 - One function answers every check: `app.has_permission(family_id, permission)`. RLS policies, RPCs and NestJS guards all call it.
 
-| Permission (Phase 1 live) | Admin | Adult | Child | Viewer | Grantable |
-|---|:-:|:-:|:-:|:-:|:-:|
-| family.settings | ✓ | – | – | – | admin only |
-| members.invite | ✓ | – | – | – | yes |
-| members.change_role / members.remove / permissions.manage | ✓ | – | – | – | admin only |
-| audit.view | ✓ | – | – | – | yes |
+| Permission (Phase 1 live) | Admin | Adult | Viewer | Grantable |
+|---|:-:|:-:|:-:|:-:|
+| family.settings | ✓ | – | – | admin only |
+| members.invite | ✓ | – | – | yes |
+| members.change_role / members.remove / permissions.manage | ✓ | – | – | admin only |
+| audit.view | ✓ | – | – | yes |
 
 `records.delete_permanent` and `backup.restore_family` (admin only) are in the catalog and go live in Phase 5.
 
-Later-phase permissions (finance, shopping, tasks, vault, health, chat, calendar) are already in the catalog with their phase number; their defaults follow spec §3 (adults edit shared records, children work on assigned items, viewers read only).
+Later-phase permissions (finance, shopping, tasks, vault, health, chat, calendar) are already in the catalog with their phase number; their defaults follow spec §3 (adults edit shared records, viewers read only). Child defaults remain in the catalog but are unused while the role is hidden.
 
-### 4.4 Personal vs shared records (pattern for every module from Phase 2)
-Every record carries `family_id`, `owner_id` and `visibility`:
-- `private` → only the owner (and nobody else, including admins) can read it.
-- `family` → readable by active members holding the module's view permission; writable by holders of its edit permission.
-- `shared` → readable by the owner plus members listed in a per-record share table.
+### 4.4 Personal or Family records (pattern for every module from Phase 2)
+Owner decision (1 Nov 2026): every record offers exactly two choices, shown on every add/edit form.
 
-Health records default to `private`. Admin power never bypasses another member's private records.
+Every record carries `family_id`, `owner_id` and `visibility` (`personal` | `family`, Postgres enum `record_visibility`, shared constant `RECORD_VISIBILITIES`):
+- `personal` → only the owner can read or change it. Admins cannot see it either.
+- `family` → readable by active members holding the module's view permission; editable by holders of its edit permission.
+
+New records start as **personal**; sharing is always an explicit choice, and the owner can switch a record between the two at any time (audited). Exceptions where the record is shared by nature: shopping lists and family chat are always `family`. Family totals (dashboards, family budgets, the AI assistant) include only `family` records plus the viewer's own `personal` records, and say so on screen.
+
+Records about someone who doesn't use the app (for example a child's vaccination card or school fees) are kept by the member who adds them, as Personal or Family like any other record. There are no separate child profiles.
 
 ### 4.5 Step-up confirmation for critical actions
 Deleting a family and transferring primary admin require a **fresh OTP**: the RPC checks the JWT `amr` claim and rejects if the last OTP verification is older than 10 minutes. The app shows an in-place "confirm with OTP" sheet, then retries. Other admin actions (role change, removal) require an explicit confirmation dialog and are audited with an optional reason.
@@ -383,7 +386,7 @@ A family of 4–10 people generates well under 1 GB of relational data per year;
 
 ## 14. Open decisions (need the owner's input before the named phase)
 
-1. **Children without phones** (before Phase 4): parent-managed child profiles without login, or require a phone per child?
+1. ~~Children without phones~~ **Decided 1 Nov 2026:** no child users or child profiles; Child role hidden; records about children are kept by a parent as Personal or Family (§4.2, §4.4).
 2. **Hosting region** (before production): Supabase Mumbai region (`ap-south-1`) for latency and data residency, recommended.
 3. **SMS provider** (before wider rollout): MSG91 via Send SMS Hook, or Twilio Verify.
 4. **Family Admin recovery** (Phase 5): if the primary admin's number is lost, allow a secondary admin to claim primary after a waiting period with notifications?
@@ -391,4 +394,5 @@ A family of 4–10 people generates well under 1 GB of relational data per year;
 ---
 
 ## 15. Change log
+- 2026-11-01: Owner decisions: no child users (Child role hidden, enforced in the database); records are Personal or Family only, default Personal (§4.2, §4.4, §14).
 - 2026-11-01: v1.0 created with Phase 1 implementation. Versions pinned at build time: Expo SDK 58 / React Native 0.88, NestJS 12 (ESM, so the API uses Vitest instead of Jest). Home moved to `/home` with an explicit `/` entry redirect so the signed-out start screen is deterministic on every platform.
