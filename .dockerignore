@@ -1,0 +1,6 @@
+**/node_modules
+**/dist
+**/.env
+apps/mobile/ios
+apps/mobile/android
+.git
