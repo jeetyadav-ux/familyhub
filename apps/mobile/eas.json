@@ -7,17 +7,44 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "environment": "development",
-      "android": { "buildType": "apk" }
+      "android": {
+        "buildType": "apk",
+        "image": "latest"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://kpnuytpjboptdknnvjrt.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_nQUQ89jUYQzaEe95N8zasw__oSbufxq"
+      },
+      "ios": {
+        "image": "latest"
+      }
     },
     "preview": {
       "distribution": "internal",
-      "environment": "preview",
-      "android": { "buildType": "apk" }
+      "android": {
+        "buildType": "apk",
+        "image": "latest"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://kpnuytpjboptdknnvjrt.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_nQUQ89jUYQzaEe95N8zasw__oSbufxq"
+      },
+      "ios": {
+        "image": "latest"
+      }
     },
     "production": {
-      "environment": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://kpnuytpjboptdknnvjrt.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_nQUQ89jUYQzaEe95N8zasw__oSbufxq"
+      },
+      "android": {
+        "image": "latest"
+      },
+      "ios": {
+        "image": "latest"
+      }
     }
   },
   "submit": {
