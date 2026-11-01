@@ -51,7 +51,10 @@
       "expo-font"
     ],
     "extra": {
-      "phase": 1
+      "phase": 1,
+      "eas": {
+        "projectId": "450997e8-072c-45a4-8f4d-61e802af4d22"
+      }
     }
   }
 }
