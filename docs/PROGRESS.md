@@ -20,7 +20,8 @@
 - [x] Automated tests: 64 DB + 59 shared + 28 API + 42 mobile
 - [x] CI workflow
 - [x] Supabase project created and migrations applied (Mumbai, free plan; live smoke test passed)
-- [x] Expo project linked to GitHub; Android preview build triggered from `main`
+- [x] Expo project linked to GitHub; first Android preview APK built (1 Nov 2026)
+- [x] Phone sign-in enabled with family test numbers (owner)
 - [ ] Acceptance checklist on two phones (owner)
 
 ## Decisions log

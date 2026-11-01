@@ -49,7 +49,7 @@ Also verified: all workspaces typecheck; the mobile app builds a production bund
 
 ## 6. Known limitations
 
-1. **Not yet run against a live Supabase project or on a phone.** No backend was reachable from the build environment, so the signed-in screens are verified by typecheck, component tests and the database suite, not by a full end-to-end run. The acceptance checklist below is the first job.
+1. **Live since 1 Nov 2026, not yet acceptance-tested on phones.** The live database passed a scripted end-to-end check (three simulated users), and the Android build compiled on EAS. The acceptance checklist below, on real phones, is the next job.
 2. **SMS**: only Supabase test numbers (fixed OTPs). Real SMS to Indian numbers needs an SMS provider plus TRAI DLT registration.
 3. **Expo Go**: SDK 58 is new; if the store version of Expo Go doesn't support it yet, use a development build (steps below).
 4. Membership changes reach other open devices on their next refresh (pull-to-refresh, app focus or within ~30 s), not instantly. Realtime arrives with Phase 4. Server-side access is cut immediately regardless.
@@ -79,6 +79,7 @@ Also verified: all workspaces typecheck; the mobile app builds a production bund
 | Expo project | `@jeet.yadav/familyhub`, ID `450997e8-072c-45a4-8f4d-61e802af4d22`, GitHub-linked, base directory `apps/mobile` |
 | Android | `preview` profile → installable APK with an expo.dev download link |
 | Sign-in | Supabase test phone numbers with private fixed codes (owner manages them in Authentication → Providers → Phone); no SMS sent |
+| First Android build | 1 Nov 2026, build `decd072d-cfc5-4d6f-86e1-8953b947916b`, version 0.1.0 (1), from commit `f93d43a`; signing key generated and held by EAS. Free-plan download links expire after about 14 days; rebuild to get a fresh link |
 
 **New build:** trigger the `preview` profile for Android from the latest `main` commit (expo.dev → project → Builds → Build from GitHub), or ask Claude.
 **Database changes:** every new migration in `supabase/migrations` must also be applied to the live project.
