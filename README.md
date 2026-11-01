@@ -28,7 +28,7 @@ cp apps/mobile/.env.example apps/mobile/.env   # add your Supabase URL + anon ke
 npm run mobile
 ```
 
-Full setup (creating the Supabase project, test phone numbers, development builds) is in [docs/phases/PHASE-1.md](docs/phases/PHASE-1.md#8-how-to-run).
+The live family-testing environment (Supabase in Mumbai, Expo project, Android builds) is described in [docs/phases/PHASE-1.md](docs/phases/PHASE-1.md#8-live-environment-family-testing). Local setup is in section 9 of the same file.
 
 ## Tests
 

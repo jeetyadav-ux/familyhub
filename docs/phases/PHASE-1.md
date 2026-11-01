@@ -68,19 +68,34 @@ Also verified: all workspaces typecheck; the mobile app builds a production bund
 - [x] Decide: children → no child users; Personal or Family records (1 Nov 2026).
 - [ ] Decide: hosting region (Mumbai recommended); SMS provider.
 
-## 8. How to run
+## 8. Live environment (family testing)
+
+| Item | Value |
+|---|---|
+| Supabase project | `familyhub`, ref `kpnuytpjboptdknnvjrt`, region Mumbai (`ap-south-1`), free plan (pauses after ~7 idle days; restore from the dashboard) |
+| API URL | `https://kpnuytpjboptdknnvjrt.supabase.co` |
+| Publishable key | in `apps/mobile/eas.json` build profiles (public by design; RLS protects data) |
+| Database | migrations 000100–000600 applied 1 Nov 2026; Supabase security advisor: only intentional findings (signed-in RPCs that check permissions themselves; `invitation_attempts` has no client policy by design) |
+| Expo project | `@jeet.yadav/familyhub`, ID `450997e8-072c-45a4-8f4d-61e802af4d22`, GitHub-linked, base directory `apps/mobile` |
+| Android | `preview` profile → installable APK with an expo.dev download link |
+| Sign-in | Supabase test phone numbers with private fixed codes (owner manages them in Authentication → Providers → Phone); no SMS sent |
+
+**New build:** trigger the `preview` profile for Android from the latest `main` commit (expo.dev → project → Builds → Build from GitHub), or ask Claude.
+**Database changes:** every new migration in `supabase/migrations` must also be applied to the live project.
+
+## 9. How to run locally
 
 ### Prerequisites
 Node.js 22.13+ (or 24.3+), npm 10, a free Supabase account, Expo Go or an Expo account for builds. For DB tests: PostgreSQL 15+ (or Docker).
 
-### 8.1 Install
+### 9.1 Install
 ```bash
 git clone https://github.com/jeetyadav-ux/familyhub && cd familyhub
 npm install
 npm run build:shared
 ```
 
-### 8.2 Create the backend (Supabase, ~10 minutes)
+### 9.2 Create the backend (Supabase, ~10 minutes)
 1. supabase.com → New project → region **South Asia (Mumbai)** → save the database password.
 2. Apply the migrations from your computer:
    ```bash
@@ -92,7 +107,7 @@ npm run build:shared
 4. In **Test Phone Numbers and OTPs**, add your family's real numbers without the `+`, e.g. `919812345678=482913, 919811111111=731905`, and set **Test OTPs Valid Until** a few weeks ahead. Use different, private codes: anyone who knows a number and its code can sign in.
 5. Dashboard → **Project Settings → API**: copy the Project URL and the anon (publishable) key.
 
-### 8.3 Run the app
+### 9.3 Run the app
 ```bash
 cp apps/mobile/.env.example apps/mobile/.env   # paste the URL and anon key
 npm run mobile                                  # starts Expo; scan the QR code
@@ -101,13 +116,13 @@ npm run mobile                                  # starts Expo; scan the QR code
 - **Development build** (works regardless): `cd apps/mobile && npx eas-cli@latest login && npx eas-cli build --profile development --platform android`, install the APK from the link, then `npx expo start --dev-client`. iOS needs an Apple Developer account (US$99/year).
 - **Preview build for the family** (no computer needed afterwards): set the two `EXPO_PUBLIC_*` values with `npx eas-cli env:create --environment preview` (visibility: plaintext; they are public by design), then `npx eas-cli build --profile preview --platform android` and share the install link.
 
-### 8.4 Run the API (optional in Phase 1)
+### 9.4 Run the API (optional in Phase 1)
 ```bash
 cp apps/api/.env.example apps/api/.env   # same URL and anon key
 npm run api                               # http://localhost:3000/health, docs at /docs
 ```
 
-### 8.5 Run the tests
+### 9.5 Run the tests
 ```bash
 npm run typecheck
 npm test            # shared + API + mobile
@@ -115,7 +130,7 @@ npm run test:db     # needs PostgreSQL at 127.0.0.1:5432 (postgres/postgres), se
 ```
 CI runs all of these on every push (`.github/workflows/ci.yml`).
 
-## 9. Acceptance checklist (two phones, A and B)
+## 10. Acceptance checklist (two phones, A and B)
 
 | # | Steps | Expected |
 |---|---|---|

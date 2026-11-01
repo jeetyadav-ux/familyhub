@@ -19,9 +19,11 @@
 - [x] API: JWT verification, permission guard, health, `/v1/me`, families
 - [x] Automated tests: 64 DB + 59 shared + 28 API + 42 mobile
 - [x] CI workflow
-- [ ] Supabase project created and migrations applied (owner)
+- [x] Supabase project created and migrations applied (Mumbai, free plan; live smoke test passed)
+- [x] Expo project linked to GitHub; Android preview build triggered from `main`
 - [ ] Acceptance checklist on two phones (owner)
 
 ## Decisions log
 - 2026-11-01: Supabase + NestJS; family-first launch with Supabase test OTP numbers; GitHub repo `jeetyadav-ux/familyhub`.
+- 2026-11-01: Went live for family testing: Supabase project `familyhub` (ref `kpnuytpjboptdknnvjrt`, Mumbai `ap-south-1`, free plan) with migrations 000100–000600 applied; EAS project `@jeet.yadav/familyhub` (ID `450997e8-072c-45a4-8f4d-61e802af4d22`) linked to GitHub, base directory `apps/mobile`; Android first (preview APK, internal distribution); iPhone later.
 - 2026-11-01: No child users: Child role hidden in the app and blocked in the database (can be re-enabled later). Every record is Personal or Family, starting as Personal; a child's records are kept by a parent.
