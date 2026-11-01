@@ -1,0 +1,44 @@
+# Supabase CLI configuration for local development (`npx supabase start`).
+# Hosted projects are configured in the Supabase dashboard; see docs/phases/PHASE-1.md.
+project_id = "familyhub"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:8081"
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+
+[auth.email]
+enable_signup = false
+
+[auth.sms]
+enable_signup = true
+enable_confirmations = false
+template = "Your FamilyHub code is {{ .Code }}"
+max_frequency = "5s"
+
+# Fixed OTPs for local testing. No SMS is sent to these numbers.
+# Never push these to a production project.
+[auth.sms.test_otp]
+919999900001 = "123456"
+919999900002 = "123456"
+919999900003 = "123456"
+
+# Auth needs a provider configured even for test numbers; placeholders are fine locally.
+[auth.sms.twilio]
+enabled = true
+account_sid = "local-placeholder"
+message_service_sid = "local-placeholder"
+auth_token = "local-placeholder"

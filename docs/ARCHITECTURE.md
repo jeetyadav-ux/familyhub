@@ -11,8 +11,8 @@ This document is the single architectural reference for FamilyHub. Every phase b
 
 | Area | Decision | Why |
 |---|---|---|
-| Mobile | **React Native + Expo (SDK 56) + TypeScript + Expo Router** | One codebase for Android and iOS, file-based navigation, EAS for builds and store submission. |
-| Backend | **Supabase + NestJS** | Supabase provides phone-OTP auth, Postgres with Row Level Security, storage and realtime. NestJS hosts logic that needs secrets or heavy computation: finance engine, AI, email ingestion, OCR, backups, push fan-out. |
+| Mobile | **React Native 0.88 + Expo SDK 58 + TypeScript + Expo Router** | One codebase for Android and iOS, file-based navigation, EAS for builds and store submission. |
+| Backend | **Supabase + NestJS 12 (ESM, Vitest)** | Supabase provides phone-OTP auth, Postgres with Row Level Security, storage and realtime. NestJS hosts logic that needs secrets or heavy computation: finance engine, AI, email ingestion, OCR, backups, push fan-out. |
 | Database | **PostgreSQL (Supabase)**, SQL migrations in `supabase/migrations` | Relational integrity for money; RLS enforces family and personal isolation inside the database itself. |
 | Authorization | **RLS on every table + `SECURITY DEFINER` RPCs for multi-step operations + NestJS guards that re-check in the database** | The database is the final authority, so no client or API bug can leak another family's data. |
 | Repo | **npm workspaces monorepo** (`apps/mobile`, `apps/api`, `packages/shared`, `supabase`) | Shared types, validation and business rules in one place. |
@@ -107,7 +107,7 @@ flowchart LR
 ```
 familyhub/
 ├─ apps/
-│  ├─ mobile/            Expo app (Expo Router, TypeScript)
+│  ├─ mobile/            Expo app (Expo Router, TypeScript); routes in src/app
 │  └─ api/               NestJS API
 ├─ packages/
 │  └─ shared/            Roles, permission catalog, zod schemas, phone & invite-code utils,
@@ -151,7 +151,8 @@ familyhub/
 | members.invite | ✓ | – | – | – | yes |
 | members.change_role / members.remove / permissions.manage | ✓ | – | – | – | admin only |
 | audit.view | ✓ | – | – | – | yes |
-| records.delete_permanent / backup.restore_family | ✓ | – | – | – | admin only |
+
+`records.delete_permanent` and `backup.restore_family` (admin only) are in the catalog and go live in Phase 5.
 
 Later-phase permissions (finance, shopping, tasks, vault, health, chat, calendar) are already in the catalog with their phase number; their defaults follow spec §3 (adults edit shared records, children work on assigned items, viewers read only).
 
@@ -270,12 +271,14 @@ All endpoints: JWT verification (Supabase JWKS, HS256 fallback for local), reque
 ### 7.1 Route map (Expo Router)
 
 ```
-(auth)        welcome → phone → verify → profile
-(onboarding)  family-setup (create | join) → join (code / QR scan) → invite-first-members
-(app)/(tabs)  Home · Finance · Shopping · Health · Family · More
+/             entry route: redirects to sign-in, profile-setup, family-setup or /home
+(auth)        sign-in (phone) → verify (OTP)
+profile-setup → family-setup (accept invite | create | join)
+join, scan    code entry and QR scanner (also reachable from inside the app and via deep link)
+(app)/(tabs)  /home · /finance · /shopping · /health · /family · /more
 (app)         family/switch, family/invite, family/invitations, family/member/[id],
               family/permissions, family/audit, family/settings,
-              dashboard/customize, settings/*, join (deep link: familyhub://join?code=…)
+              customize-dashboard, settings, activity, module/[key], deep link familyhub://join?code=…
 ```
 
 - **Home**: greeting and family switcher, then the user's chosen widgets (§7.2), then Quick Add.
@@ -361,8 +364,8 @@ A family of 4–10 people generates well under 1 GB of relational data per year;
 |---|---|---|
 | Database | Vitest + `pg` against real Postgres 16 with Supabase auth stubs | RLS isolation (cross-family, private records, removed members), RPC rules, invariants (primary admin protection, invite brute force), audit rows written, secrets never readable |
 | Shared | Vitest | Phone normalisation, invite-code format, permission matrix, (P2+) accounting rules |
-| API | Jest + Supertest | JWT guard (valid, expired, wrong audience, wrong signature), permission guard, error format |
-| Mobile | Jest + React Native Testing Library, `tsc --noEmit`, web export smoke build | Form validation, components, navigation guards |
+| API | Vitest + Supertest | JWT guard (valid, expired, wrong audience, wrong signature), permission guard, error format |
+| Mobile | jest-expo + React Native Testing Library 14, `tsc --noEmit`, web export smoke build | Form validation, components, session encryption, sign-in flow |
 | End-to-end | Maestro flows on device builds (from Phase 2) | Sign-in, create family, invite, join |
 
 ---
@@ -388,4 +391,4 @@ A family of 4–10 people generates well under 1 GB of relational data per year;
 ---
 
 ## 15. Change log
-- 2026-11-01: v1.0 created with Phase 1 implementation.
+- 2026-11-01: v1.0 created with Phase 1 implementation. Versions pinned at build time: Expo SDK 58 / React Native 0.88, NestJS 12 (ESM, so the API uses Vitest instead of Jest). Home moved to `/home` with an explicit `/` entry redirect so the signed-out start screen is deterministic on every platform.
